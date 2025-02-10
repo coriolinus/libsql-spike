@@ -1,6 +1,7 @@
 use std::path::Path;
 
-use libsql::{params, Connection, Database, EncryptionConfig};
+use libsql::{params, Connection, Database};
+pub use libsql::{Cipher, EncryptionConfig};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -50,9 +51,11 @@ impl Db {
         const SCHEMA: &str = include_str!("schema.sql");
         let conn = self.conn()?;
 
-        conn.execute(SCHEMA, ())
-            .await
-            .map_err(Error::libsql("executing schema"))?;
+        for command in SCHEMA.split("\n\n") {
+            conn.execute(command, ())
+                .await
+                .map_err(Error::libsql("executing schema"))?;
+        }
 
         Ok(())
     }
