@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS checklists (
+    id INTEGER PRIMARY KEY ASC,
+    name TEXT NOT NULL
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS items (
+    id INTEGER PRIMARY KEY ASC,
+    checklist INTEGER NOT NULL,
+    item TEXT NOT NULL,
+    checked INTEGER NOT NULL DEFAULT FALSE,
+    FOREIGN KEY(checklist) REFERENCES checklists(id) ON DELETE CASCADE
+) STRICT;
+
+CREATE INDEX IF NOT EXISTS checklist_items ON items (checklist);
