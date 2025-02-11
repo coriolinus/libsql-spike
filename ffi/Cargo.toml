@@ -1,0 +1,17 @@
+[package]
+name = "ffi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "checklist_ffi"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[features]
+default = []
+uniffi = ["dep:uniffi", "uniffi/cli"]
+
+[dependencies]
+checklist = { version = "0.1.0", path = "../checklist" }
+thiserror = "2.0.11"
+uniffi = { version = "0.29.0", optional = true }

@@ -44,7 +44,7 @@ async fn main() -> anyhow::Result<()> {
         cli::Noun::List(ListVerbAction {
             verb: ListVerb::New(NewChecklist { name }),
         }) => {
-            let checklist = Checklist::create(&db, &name)
+            let checklist = Checklist::new(&db, &name)
                 .await
                 .context("creating checklist")?;
             show_checklist(&checklist);

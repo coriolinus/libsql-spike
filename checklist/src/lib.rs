@@ -84,7 +84,7 @@ pub struct Checklist {
 }
 
 impl Checklist {
-    pub async fn create(db: &Db, name: &str) -> Result<Self> {
+    pub async fn new(db: &Db, name: &str) -> Result<Self> {
         let conn = db.conn()?;
 
         let mut rows = conn
