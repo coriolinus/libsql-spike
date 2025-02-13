@@ -13,20 +13,15 @@ use color_print::cprintln;
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    let path = dirs::data_local_dir()
-        .context("data local dir must exist on this system")?
-        .join("checklist/db.sqlite3");
-    let parent = path.parent().expect("the path above always has a parent");
-    std::fs::create_dir_all(parent).context("creating checklist data directory")?;
+    let path = cli.path()?;
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).context("creating checklist data directory")?;
+    }
+    let encryption_key = Bytes::from(cli.encryption_key()?);
 
-    // Very Secure
-    let device = whoami::devicename();
-    let arch = whoami::arch();
-    let username = whoami::username();
-    let key = format!("{device}-{arch}-{username}");
     let encryption_config = EncryptionConfig {
         cipher: Cipher::Aes256Cbc,
-        encryption_key: Bytes::from(key),
+        encryption_key,
     };
 
     let db = Db::new(path, encryption_config)

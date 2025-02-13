@@ -1,3 +1,6 @@
+use std::{os::unix::ffi::OsStrExt, path::PathBuf};
+
+use anyhow::{Context, Result};
 use checklist::{ChecklistId, ItemId};
 use clap::{Args, Parser, Subcommand};
 
@@ -5,6 +8,53 @@ use clap::{Args, Parser, Subcommand};
 pub struct Cli {
     #[command(subcommand)]
     pub noun: Noun,
+
+    /// Path to the database
+    ///
+    /// Default: "$XDG_DATA_HOME" if set or "$HOME/.local/share", then "checklist/db.sqlite3"
+    #[arg(short, long)]
+    path: Option<PathBuf>,
+
+    /// Path to file containing encryption key for data at rest
+    ///
+    /// This file can contain arbitrary bytes which comprise the key for the database
+    #[arg(short = 'E', long)]
+    encryption_key_file: Option<PathBuf>,
+
+    /// Encryption key for data at rest
+    ///
+    /// Default: "$USER@$NAME"
+    #[arg(short, long, conflicts_with = "encryption_key_file")]
+    encryption_key: Option<String>,
+}
+
+impl Cli {
+    pub(crate) fn path(&self) -> Result<PathBuf> {
+        if let Some(path) = &self.path {
+            return Ok(path.clone());
+        }
+
+        Ok(dirs::data_local_dir()
+            .context("data local dir must exist on this system")?
+            .join("checklist/db.sqlite3"))
+    }
+
+    pub(crate) fn encryption_key(&self) -> Result<Vec<u8>> {
+        if let Some(path) = &self.encryption_key_file {
+            return std::fs::read(path).context("reading encryption key from file");
+        }
+
+        if let Some(key) = &self.encryption_key {
+            return Ok(key.as_bytes().to_owned());
+        }
+
+        let mut out = Vec::new();
+        out.extend_from_slice(std::env::var_os("USER").unwrap_or_default().as_bytes());
+        out.push(b'@');
+        out.extend_from_slice(std::env::var_os("NAME").unwrap_or_default().as_bytes());
+
+        Ok(out)
+    }
 }
 
 #[derive(Debug, Subcommand)]
