@@ -5,7 +5,7 @@ pub use libsql::{Cipher, EncryptionConfig};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("{context}")]
+    #[error("{context}: {inner}")]
     Libsql {
         context: &'static str,
         #[source]
