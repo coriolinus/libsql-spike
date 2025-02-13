@@ -7,9 +7,15 @@ edition = "2021"
 name = "checklist_ffi"
 crate-type = ["lib", "cdylib", "staticlib"]
 
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/uniffi-bindgen.rs"
+required-features = ["uniffi-cli"]
+
 [features]
 default = []
-uniffi = ["dep:uniffi", "uniffi/cli"]
+uniffi = ["dep:uniffi"]
+uniffi-cli = ["uniffi", "uniffi/cli"]
 
 [dependencies]
 checklist = { version = "0.1.0", path = "../checklist" }
