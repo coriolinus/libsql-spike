@@ -53,8 +53,10 @@ pub async fn delete(db: &Db, id: ChecklistId) -> Result<()> {
 }
 
 #[cfg_attr(feature = "uniffi", uniffi::export)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 impl Checklist {
     #[cfg_attr(feature = "uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
     pub async fn new(db: &Db, name: &str) -> Result<Self> {
         checklist_new(db, name).await
     }

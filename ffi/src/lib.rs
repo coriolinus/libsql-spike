@@ -1,26 +1,33 @@
-pub mod checklist;
-pub mod item;
+#[cfg(not(feature = "wasm"))]
+mod generic;
 
-pub use checklist::{Checklist, ChecklistId};
-pub use item::{Item, ItemId};
+#[cfg(not(feature = "wasm"))]
+pub use generic::*;
+
+#[cfg(feature = "wasm")]
+mod wasm;
+
+#[cfg(feature = "wasm")]
+pub use wasm::*;
+
+#[cfg(all(feature = "wasm", feature = "uniffi"))]
+compile_error!(
+    "can't build this crate for uniffi and wasm simultaneously; their Error types are incompatible"
+);
 
 use ::checklist as libchecklist;
 use std::ops::Deref;
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 #[cfg(feature = "uniffi")]
 uniffi::setup_scaffolding!("checklist_ffi");
-
-#[derive(Debug, thiserror::Error)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Error))]
-#[cfg_attr(feature = "uniffi", uniffi(flat_error))]
-pub enum Error {
-    #[error(transparent)]
-    Inner(#[from] libchecklist::Error),
-}
 
 pub type Result<T, E = Error> = core::result::Result<T, E>;
 
 #[cfg_attr(feature = "uniffi", derive(uniffi::Object))]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub struct Db {
     inner: libchecklist::Db,
 }
@@ -38,9 +45,11 @@ pub async fn db_new(path: &str, encryption_key: Vec<u8>) -> Result<Db> {
         .map_err(Into::into)
 }
 
-#[uniffi::export]
+#[cfg_attr(feature = "uniffi", uniffi::export)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 impl Db {
     #[cfg_attr(feature = "uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
     pub async fn new(path: &str, encryption_key: Vec<u8>) -> Result<Db> {
         db_new(path, encryption_key).await
     }
